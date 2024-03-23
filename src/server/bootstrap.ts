@@ -1,9 +1,26 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule, PrismaService } from 'src/modules';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+
+import { AppModule, ConfigService } from '../modules';
+
+import { setUpSwagger } from './swagger';
+import { setUpPrisma } from './prisma';
 
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
-  await app.listen(3000);
+  const config = app.get(ConfigService);
+  configure(app);
+  await setUpSwagger(app);
+  setUpPrisma(app);
+
+  await app.listen(config.getNumber('PORT'));
+}
+
+export function configure(app: INestApplication) {
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 }
