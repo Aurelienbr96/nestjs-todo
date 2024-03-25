@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 import { AppModule, ConfigService } from '../modules';
 
@@ -17,6 +18,7 @@ export async function bootstrap() {
 }
 
 export function configure(app: INestApplication) {
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

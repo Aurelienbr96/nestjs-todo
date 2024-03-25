@@ -1,10 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
-import { Role } from '@prisma/client';
 
 import { PrismaService } from '../../../modules/common';
-import { AppFixtures } from '../../../../testing/fixtures';
+import { AppFixtures, UserFixtures } from '../../../../testing/fixtures';
 import { UserToRegisterDTO } from '../dto';
 import { PublicUserModel } from '../type';
 
@@ -13,8 +12,8 @@ import { SuperTestResponse } from './types';
 describe('POST /register', () => {
   let app: INestApplication;
   const userToRegister: UserToRegisterDTO = {
-    email: 'aurel@gmail.com',
-    password: 'testpassword',
+    email: UserFixtures.account.create.email,
+    password: UserFixtures.account.create.password,
   };
 
   beforeAll(async () => {
@@ -37,9 +36,9 @@ describe('POST /register', () => {
 
     it('Should create a user', () => {
       return expect(response.body).toEqual({
-        id: 1,
-        email: 'aurel@gmail.com',
-        role: Role.USER,
+        id: UserFixtures.stored.all.length + 1,
+        email: UserFixtures.account.create.email,
+        role: UserFixtures.account.create.role,
       });
     });
 
@@ -53,9 +52,9 @@ describe('POST /register', () => {
       const valid = await bcrypt.compare(userToRegister.password, password);
       expect(valid).toBe(true);
       expect(user).toEqual({
-        id: 1,
-        email: 'aurel@gmail.com',
-        role: Role.USER,
+        id: UserFixtures.stored.all.length + 1,
+        email: UserFixtures.account.create.email,
+        role: UserFixtures.account.create.role,
       });
     });
   });

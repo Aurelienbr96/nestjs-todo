@@ -16,6 +16,7 @@ model User {
   email    String @unique @db.VarChar(255)
   password String @db.VarChar(255)
   role     Role   @default(USER)
+  refresh String @unique @default(uuid())
 }
 
 enum Role {

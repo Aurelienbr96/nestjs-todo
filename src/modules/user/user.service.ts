@@ -14,4 +14,16 @@ export class UserService {
       data: { ...userToRegister, password: hashedPassword },
     });
   }
+
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async updateRefreshToken(id: number, uuid: string) {
+    return this.prisma.user.update({ where: { id }, data: { refresh: uuid } });
+  }
+
+  async findByRefresh(uuid: string, userId: number) {
+    return this.prisma.user.findFirst({ where: { refresh: uuid, id: userId } });
+  }
 }
