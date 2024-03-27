@@ -94,7 +94,6 @@ describe('POST auth/refresh-token', () => {
         const cookie = cookies[1];
         const section = cookie.split(';')[0];
         const [key, token] = section.split('=');
-        console.log('cookie', cookie, section);
 
         const config = app.get(ConfigService);
         const decoded = jwt.verify(
