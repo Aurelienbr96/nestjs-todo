@@ -10,10 +10,7 @@ import { JWTPayload, RefreshPayload } from '../type';
 import { UserService } from '../../user';
 
 @Injectable()
-export class RefreshJwtStrategy extends PassportStrategy(
-  Strategy,
-  'refresh-jwt',
-) {
+export class RefreshJwtStrategy extends PassportStrategy(Strategy, 'refresh-jwt') {
   constructor(config: ConfigService, private user: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([

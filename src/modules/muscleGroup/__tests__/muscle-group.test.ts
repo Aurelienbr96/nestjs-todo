@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { MuscleGroupFixtures } from '../../../../testing/fixtures/muscle-group.fixtures';
-import { AppFixtures } from '../../../../testing/fixtures';
+import { AppFixtures, UserFixtures } from '../../../../testing/fixtures';
 import { MuscleToCreateDTO } from '../dto/muscle-to-create.dto';
 
 describe('/muscle-group', () => {
@@ -11,9 +11,11 @@ describe('/muscle-group', () => {
     name: MuscleGroupFixtures.muscleGroup.create.name,
     description: MuscleGroupFixtures.muscleGroup.create.description as string,
   };
+  let cookie: string;
 
   beforeAll(async () => {
     app = await AppFixtures.createApplication();
+    cookie = await UserFixtures.generateAccessCookie(app, UserFixtures.stored.admin.id);
   });
 
   afterAll(async () => {
@@ -24,6 +26,7 @@ describe('/muscle-group', () => {
     it('Should create a muscle group', async () => {
       return request(app.getHttpServer())
         .post('/muscle-group')
+        .set('Cookie', [cookie])
         .send(muscleGroupToCreate)
         .expect(201)
         .then((response) => {
@@ -54,9 +57,7 @@ describe('/muscle-group', () => {
           .send()
           .expect(200)
           .then((response) => {
-            expect(response.body).toEqual(
-              MuscleGroupFixtures.stored.muscleGroup,
-            );
+            expect(response.body).toEqual(MuscleGroupFixtures.stored.muscleGroup);
           });
       });
 
@@ -67,9 +68,7 @@ describe('/muscle-group', () => {
           .send()
           .expect(404)
           .then((response) => {
-            expect(response.body.message).toEqual(
-              `the muscle group for id:${unexistingId} has not been found`,
-            );
+            expect(response.body.message).toEqual(`the muscle group for id:${unexistingId} has not been found`);
           });
       });
     });
@@ -79,6 +78,7 @@ describe('/muscle-group', () => {
     it('Should update a unique muscle group', () => {
       return request(app.getHttpServer())
         .put('/muscle-group/1')
+        .set('Cookie', [cookie])
         .send({
           name: MuscleGroupFixtures.updateName.name,
         })
@@ -94,15 +94,12 @@ describe('/muscle-group', () => {
     it('Should display an error if other params are given', () => {
       return request(app.getHttpServer())
         .put('/muscle-group/1')
+        .set('Cookie', [cookie])
         .send(MuscleGroupFixtures.updateNameWithWrongParams.muscleGroup)
         .expect(400)
         .then((response) => {
           expect(response.body.message).toEqual([
-            `property ${
-              Object.keys(
-                MuscleGroupFixtures.updateNameWithWrongParams.muscleGroup,
-              )[1]
-            } should not exist`,
+            `property ${Object.keys(MuscleGroupFixtures.updateNameWithWrongParams.muscleGroup)[1]} should not exist`,
           ]);
         });
     });
@@ -111,12 +108,11 @@ describe('/muscle-group', () => {
       const unexistingId = 400;
       return request(app.getHttpServer())
         .put(`/muscle-group/${unexistingId}`)
+        .set('Cookie', [cookie])
         .send({ name: MuscleGroupFixtures.updateName.name })
         .expect(404)
         .then((response) => {
-          expect(response.body.message).toEqual(
-            `the muscle group for id:${unexistingId} has not been found`,
-          );
+          expect(response.body.message).toEqual(`the muscle group for id:${unexistingId} has not been found`);
         });
     });
   });
@@ -125,6 +121,7 @@ describe('/muscle-group', () => {
     it('Should delete an existing resource', () => {
       return request(app.getHttpServer())
         .delete(`/muscle-group/1`)
+        .set('Cookie', [cookie])
         .send()
         .expect(200)
         .then((response) => {
@@ -136,18 +133,13 @@ describe('/muscle-group', () => {
     });
 
     it('Should delete multiple existing resource', async () => {
-      await request(app.getHttpServer())
-        .post('/muscle-group')
-        .send(muscleGroupToCreate)
-        .expect(201);
+      await request(app.getHttpServer()).post('/muscle-group').set('Cookie', [cookie]).send(muscleGroupToCreate).expect(201);
 
-      await request(app.getHttpServer())
-        .post('/muscle-group')
-        .send(muscleGroupToCreate)
-        .expect(201);
+      await request(app.getHttpServer()).post('/muscle-group').set('Cookie', [cookie]).send(muscleGroupToCreate).expect(201);
 
       return request(app.getHttpServer())
         .delete(`/muscle-group`)
+        .set('Cookie', [cookie])
         .send({ ids: [2, 3] })
         .expect(200)
         .then((response) => {

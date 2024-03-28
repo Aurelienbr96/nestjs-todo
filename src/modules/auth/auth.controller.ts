@@ -1,11 +1,5 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Res,
-  /* Res, */ UseGuards,
-} from '@nestjs/common';
-import { ApiCreatedResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { Body, Controller, Post, Res, /* Res, */ UseGuards } from '@nestjs/common';
+import { ApiCreatedResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { v4 as uuid } from 'uuid';
@@ -22,6 +16,7 @@ import { AuthService } from './auth.service';
 /* 
 @Res() _res: Response,
 @Body() _: UserToLoginDTO, */
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private user: UserService, private auth: AuthService) {}
@@ -39,33 +34,15 @@ export class AuthController {
     description: 'Successful login',
     type: PublicUserModel,
   })
-  async login(
-    @Res({ passthrough: true }) res: Response,
-    @Auth() auth: UserModel,
-    @Body() _userToLogin: UserToLoginDTO,
-  ) {
+  async login(@Res({ passthrough: true }) res: Response, @Auth() auth: UserModel, @Body() _userToLogin: UserToLoginDTO) {
     const { password, refresh, ...user } = auth;
 
-    const accessToken = this.auth.signAccessToken(
-      auth.id,
-      auth.email,
-      auth.role,
-    );
+    const accessToken = this.auth.signAccessToken(auth.id, auth.email, auth.role);
 
     const refreshToken = this.auth.signRefreshToken(auth.id, uuid());
 
-    this.auth.setCookie(
-      res,
-      'access-token',
-      accessToken,
-      this.auth.getAccessTokenExpires(),
-    );
-    this.auth.setCookie(
-      res,
-      'refresh-token',
-      refreshToken,
-      this.auth.getRefreshTokenExpires(),
-    );
+    this.auth.setCookie(res, 'access-token', accessToken, this.auth.getAccessTokenExpires());
+    this.auth.setCookie(res, 'refresh-token', refreshToken, this.auth.getRefreshTokenExpires());
 
     return user;
   }
@@ -77,31 +54,14 @@ export class AuthController {
     description: 'successful refresh token',
     type: PublicUserModel,
   })
-  async refreshToken(
-    @Res({ passthrough: true }) res: Response,
-    @Auth() auth: UserModel,
-  ) {
+  async refreshToken(@Res({ passthrough: true }) res: Response, @Auth() auth: UserModel) {
     const { password, refresh, ...user } = auth;
-    const accessToken = this.auth.signAccessToken(
-      user.id,
-      user.email,
-      user.role,
-    );
+    const accessToken = this.auth.signAccessToken(user.id, user.email, user.role);
 
     const refreshToken = this.auth.signRefreshToken(user.id, refresh);
 
-    this.auth.setCookie(
-      res,
-      'access-token',
-      accessToken,
-      this.auth.getAccessTokenExpires(),
-    );
-    this.auth.setCookie(
-      res,
-      'refresh-token',
-      refreshToken,
-      this.auth.getRefreshTokenExpires(),
-    );
+    this.auth.setCookie(res, 'access-token', accessToken, this.auth.getAccessTokenExpires());
+    this.auth.setCookie(res, 'refresh-token', refreshToken, this.auth.getRefreshTokenExpires());
     return user;
   }
 }
