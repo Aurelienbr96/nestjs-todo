@@ -10,6 +10,7 @@ export class AppFixtures {
   static async createApplication() {
     const prisMock = await generatePrismock();
     await prisMock.user.createMany({ data: UserFixtures.stored.all });
+
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })

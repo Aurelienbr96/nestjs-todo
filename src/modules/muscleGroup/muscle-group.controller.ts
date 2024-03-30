@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Param, Put, NotFoundException, Delete } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Put, NotFoundException, Delete, ParseIntPipe } from '@nestjs/common';
 import { ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
@@ -18,7 +18,6 @@ export class MuscleGroupController {
     description: 'Muscle group created',
     type: PublicMuscleGroupModel,
   })
-  @UseAuthGuard(Role.ADMIN)
   @Post()
   async create(@Body() muscleGroup: MuscleToCreateDTO) {
     const createdMuscleGroup = await this.muscleGroup.create(muscleGroup);
@@ -42,8 +41,8 @@ export class MuscleGroupController {
     type: PublicMuscleGroupModel,
   })
   @Get(':id')
-  async findUnique(@Param('id') id: string) {
-    const muscleGroup = await this.muscleGroup.findUnique(parseInt(id));
+  async findUnique(@Param('id', ParseIntPipe) id: number) {
+    const muscleGroup = await this.muscleGroup.findUnique(id);
     if (!muscleGroup) throw new NotFoundException(`the muscle group for id:${id} has not been found`);
     return muscleGroup;
   }
@@ -53,8 +52,8 @@ export class MuscleGroupController {
   @ApiOkResponse({ description: 'Resource updated successfully', type: UpdatedMuscleGroup })
   @ApiNotFoundResponse({ description: 'Resource not found' })
   @UseAuthGuard(Role.ADMIN)
-  async update(@Param('id') id: string, @Body() data: MuscleToUpdateDTO) {
-    const muscleGroup = await this.muscleGroup.update(parseInt(id), data);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() data: MuscleToUpdateDTO) {
+    const muscleGroup = await this.muscleGroup.update(id, data);
     if (!muscleGroup) throw new NotFoundException(`the muscle group for id:${id} has not been found`);
     return muscleGroup;
   }
@@ -69,9 +68,9 @@ export class MuscleGroupController {
   })
   @ApiOperation({ summary: 'Delete a muscle group' })
   @UseAuthGuard(Role.ADMIN)
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseIntPipe) id: number) {
     try {
-      return this.muscleGroup.delete(parseInt(id));
+      return this.muscleGroup.delete(id);
     } catch (e) {
       throw new NotFoundException(`the muscle group for id:${id} has not been found`);
     }
