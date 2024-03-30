@@ -1,12 +1,12 @@
-import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { MuscleGroupFixtures } from '../../../../testing/fixtures/muscle-group.fixtures';
-import { AppFixtures, UserFixtures } from '../../../../testing/fixtures';
+import { AppFixtures, ITestApplication, UserFixtures } from '../../../../testing/fixtures';
 import { MuscleToCreateDTO } from '../dto/muscle-to-create.dto';
 
 describe('/muscle-group', () => {
-  let app: INestApplication;
+  let app: ITestApplication;
+
   const muscleGroupToCreate: MuscleToCreateDTO = {
     name: MuscleGroupFixtures.muscleGroup.create.name,
     description: MuscleGroupFixtures.muscleGroup.create.description as string,

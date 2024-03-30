@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { User, Role } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { PrismaService } from '../../src/modules';
@@ -64,5 +65,28 @@ export class UserFixtures {
 
     const accessToken = auth.signAccessToken(user.id, user.email, user.role);
     return `access-token=${accessToken}`;
+  }
+
+  static generate(partial: Partial<User> & Pick<User, 'id'>): User {
+    const { id, ...user } = partial;
+    return {
+      id,
+      email: `user-${id}@company.com`,
+      password: `userpassword-${id}`,
+      refresh: `refresh-${id}`,
+      role: 'USER',
+      ...user,
+    };
+  }
+
+  static async hashPasswords(users: User[]) {
+    const hash = async (password: string) => {
+      const salt = await bcrypt.genSalt(10);
+      return bcrypt.hash(password, salt);
+    };
+
+    const passwords = await Promise.all(users.map((user) => hash(user.password)));
+
+    return users.map((user, i) => ({ ...user, password: passwords[i] }));
   }
 }

@@ -6,7 +6,8 @@ import { UseAuthGuard } from '../auth/decorators/use-auth-guard.decorator';
 
 import { MuscleToCreateDTO, MuscleToUpdateDTO } from './dto';
 import { MuscleGroupService } from './muscle-group.service';
-import { DeletedMuscleGroup, DeletedMusclesGroup, PublicMuscleGroupModel, UpdatedMuscleGroup } from './type/MuscleGroup';
+import { DeletedMusclesGroup, PublicMuscleGroupModel, UpdatedMuscleGroup } from './type/MuscleGroup';
+import * as Documentation from './type/Documentation';
 
 @ApiTags('muscle-group')
 @Controller('muscle-group')
@@ -59,14 +60,7 @@ export class MuscleGroupController {
   }
 
   @Delete(':id')
-  @ApiOkResponse({
-    description: 'muscle group deleted',
-    type: DeletedMuscleGroup,
-  })
-  @ApiNotFoundResponse({
-    description: 'Muscle group with given id does not exist',
-  })
-  @ApiOperation({ summary: 'Delete a muscle group' })
+  @Documentation.MuscleGroupOperationDelete()
   @UseAuthGuard(Role.ADMIN)
   async delete(@Param('id', ParseIntPipe) id: number) {
     try {

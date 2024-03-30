@@ -1,11 +1,11 @@
-import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
-import { AppFixtures, ExerciseFixture } from '../../../../testing/fixtures';
+import { AppFixtures, ExerciseFixture, ITestApplication } from '../../../../testing/fixtures';
 import { ExerciseToCreateDTO } from '../dto';
 
 describe('/exercise', () => {
-  let app: INestApplication;
+  let app: ITestApplication;
+
   const exerciseToCreate: ExerciseToCreateDTO = {
     name: ExerciseFixture.exercise.create.name,
     description: ExerciseFixture.exercise.create.description as string,
