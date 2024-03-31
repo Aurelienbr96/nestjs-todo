@@ -18,6 +18,7 @@ model User {
   role     Role   @default(USER)
   refresh String @unique @default(uuid())
   exercise Exercise[]
+  training Training[]
 }
 
 model MuscleGroup {
@@ -32,6 +33,18 @@ model Exercise {
   name          String
   description   String
   muscleGroups    ExerciseMuscleGroup[]
+  training      TrainingExercise[]
+  userId        Int? // Nullable relation to User
+  createdBy     User?       @relation(fields: [userId], references: [id])
+
+  @@index([userId]) // Optional: Improves query performance on the userId field
+}
+
+model Training {
+  id            Int         @id @default(autoincrement())
+  name          String
+  description   String
+  exercises    TrainingExercise[]
   userId        Int? // Nullable relation to User
   createdBy     User?       @relation(fields: [userId], references: [id])
 
@@ -46,6 +59,28 @@ model ExerciseMuscleGroup {
   muscleGroup  MuscleGroup @relation(fields: [muscleGroupId], references: [id])
 
   @@id([exerciseId, muscleGroupId])
+}
+
+// Join table for the many-to-many relationship between Training and Exercise
+model TrainingExercise {
+  id            Int         @id @default(autoincrement())
+  exerciseId   Int
+  trainingId   Int
+  sets               Set[] 
+  restAfterExercise Int @default(0)
+  exercise     Exercise  @relation(fields: [exerciseId], references: [id])
+  training     Training @relation(fields: [trainingId], references: [id])
+}
+
+model Set {
+  id                 Int     @id @default(autoincrement())
+  weight             Int
+  rest               Int
+  reps               Int    @default(0)
+  trainingExerciseId Int
+  trainingExercise   TrainingExercise @relation(fields: [trainingExerciseId], references: [id])
+
+  @@index([trainingExerciseId]) // Improves query performance
 }
 
 

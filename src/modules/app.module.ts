@@ -5,9 +5,10 @@ import { UserModule } from './user';
 import { AuthModule } from './auth';
 import { MuscleGroupModule } from './muscleGroup';
 import { ExerciseModule } from './exercise';
+import { TrainingModule } from './training';
 
 @Module({
-  imports: [CommonModule, UserModule, AuthModule, MuscleGroupModule, ExerciseModule],
+  imports: [CommonModule, UserModule, AuthModule, MuscleGroupModule, ExerciseModule, TrainingModule],
   controllers: [],
   providers: [],
 })
