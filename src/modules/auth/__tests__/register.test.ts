@@ -3,17 +3,13 @@ import bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../../modules/common';
 import { AppFixtures, ITestApplication, UserFixtures } from '../../../../testing/fixtures';
-import { UserToRegisterDTO } from '../dto';
 import { PublicUserModel } from '../type';
 
 import { SuperTestResponse } from './types';
 
 describe('POST /register', () => {
   let app: ITestApplication;
-  const userToRegister: UserToRegisterDTO = {
-    email: UserFixtures.account.create.email,
-    password: UserFixtures.account.create.password,
-  };
+  const userToRegister = UserFixtures.generate({ id: 1 });
 
   beforeAll(async () => {
     app = await AppFixtures.createApplication();
@@ -27,14 +23,17 @@ describe('POST /register', () => {
     let response: SuperTestResponse<PublicUserModel>;
 
     beforeAll(async () => {
-      response = await request(app.getHttpServer()).post('/auth/register').send(userToRegister).expect(201);
+      response = await request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ email: userToRegister.email, password: userToRegister.password })
+        .expect(201);
     });
 
     it('Should create a user', () => {
       return expect(response.body).toEqual({
-        id: UserFixtures.stored.all.length + 1,
-        email: UserFixtures.account.create.email,
-        role: UserFixtures.account.create.role,
+        id: userToRegister.id,
+        email: userToRegister.email,
+        role: userToRegister.role,
       });
     });
 
@@ -48,9 +47,9 @@ describe('POST /register', () => {
       const valid = await bcrypt.compare(userToRegister.password, password);
       expect(valid).toBe(true);
       expect(user).toEqual({
-        id: UserFixtures.stored.all.length + 1,
-        email: UserFixtures.account.create.email,
-        role: UserFixtures.account.create.role,
+        id: userToRegister.id,
+        email: userToRegister.email,
+        role: userToRegister.role,
       });
     });
   });

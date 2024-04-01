@@ -18,6 +18,7 @@ export type LoadFixtures = {
 
 export interface ITestApplication {
   generateAccessCookie(userId: number): Promise<string>;
+  generateRefreshCookie(userId: number): Promise<string>;
   getHttpServer(): string;
   close(): Promise<void>;
   load(fixtures: LoadFixtures): Promise<void>;
@@ -77,6 +78,17 @@ export class AppFixtures implements ITestApplication {
         } else reject(new Error('Empty token'));
       });
     });
+  }
+
+  async generateRefreshCookie(userId: number) {
+    const auth = this._app.get(AuthService);
+    const prisma = this._app.get(PrismaService);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error(`Unable to find user with id ${userId}`);
+
+    const refreshToken = auth.signRefreshToken(user.id, user.refresh);
+    return `refresh-token=${refreshToken}`;
   }
 
   async generateAccessCookie(userId: number) {
