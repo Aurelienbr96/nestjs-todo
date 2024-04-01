@@ -44,7 +44,7 @@ describe('POST auth/refresh-token', () => {
     beforeAll(async () => {
       const auth = app.get(AuthService);
       const prisma = app.get(PrismaService);
-      const user = await prisma.user.findUnique({ where: { id: UserFixtures.stored.user.id } }).then((u) => {
+      const user = await prisma.user.findUnique({ where: { id: UserFixtures.stored.user.id } }).then((u: any) => {
         if (!u) throw new Error('no user found');
         return u;
       });

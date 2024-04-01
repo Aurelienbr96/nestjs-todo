@@ -1,16 +1,15 @@
-import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 
 import { PrismaService } from '../../../modules/common';
-import { AppFixtures, UserFixtures } from '../../../../testing/fixtures';
+import { AppFixtures, ITestApplication, UserFixtures } from '../../../../testing/fixtures';
 import { UserToRegisterDTO } from '../dto';
 import { PublicUserModel } from '../type';
 
 import { SuperTestResponse } from './types';
 
 describe('POST /register', () => {
-  let app: INestApplication;
+  let app: ITestApplication;
   const userToRegister: UserToRegisterDTO = {
     email: UserFixtures.account.create.email,
     password: UserFixtures.account.create.password,
@@ -28,10 +27,7 @@ describe('POST /register', () => {
     let response: SuperTestResponse<PublicUserModel>;
 
     beforeAll(async () => {
-      response = await request(app.getHttpServer())
-        .post('/auth/register')
-        .send(userToRegister)
-        .expect(201);
+      response = await request(app.getHttpServer()).post('/auth/register').send(userToRegister).expect(201);
     });
 
     it('Should create a user', () => {
@@ -61,17 +57,11 @@ describe('POST /register', () => {
 
   it('Should return an error if email is missing', () => {
     const { email, ...payload } = userToRegister;
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send(payload)
-      .expect(400);
+    return request(app.getHttpServer()).post('/auth/register').send(payload).expect(400);
   });
 
   it('Should return an error if password is missing', () => {
     const { password, ...payload } = userToRegister;
-    return request(app.getHttpServer())
-      .post('/auth/register')
-      .send(payload)
-      .expect(400);
+    return request(app.getHttpServer()).post('/auth/register').send(payload).expect(400);
   });
 });

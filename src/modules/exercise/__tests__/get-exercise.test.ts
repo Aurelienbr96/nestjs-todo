@@ -64,7 +64,6 @@ describe('/exercise', () => {
           .send()
           .expect(200)
           .then((response): any => {
-            console.log('response', response);
             expect(response.body).toEqual(4);
           });
       });
