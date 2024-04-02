@@ -2,28 +2,18 @@ import { Exercise } from '@prisma/client';
 
 type MuscleGroupIds = { muscleGroupIds: number[] };
 
-type ExerciseContent = Omit<Exercise, 'id'> & MuscleGroupIds;
-
-type CreatedExercise = Exercise & MuscleGroupIds;
+type ExerciseContent = Exercise & MuscleGroupIds;
 
 export class ExerciseFixture {
-  static get exercise() {
-    const create: ExerciseContent = {
-      name: 'Chest',
-      description: 'The chest is separated between 3 muscle group',
-      userId: 1,
-      muscleGroupIds: [4, 5],
-    };
-
-    return { create };
-  }
-
-  static get stored() {
-    const exercise: CreatedExercise = {
-      ...ExerciseFixture.exercise.create,
+  static generate(partial: Partial<ExerciseContent>): ExerciseContent {
+    const { id, ...muscleGroup } = partial;
+    return {
       id: 1,
+      userId: 1,
+      name: 'chest',
+      description: 'pectoral muscle',
+      muscleGroupIds: [1, 2],
+      ...muscleGroup,
     };
-    const all = [exercise];
-    return { exercise, all };
   }
 }

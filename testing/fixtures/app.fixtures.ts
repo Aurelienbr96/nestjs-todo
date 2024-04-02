@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Test } from '@nestjs/testing';
 import { generatePrismock } from 'prismock';
-import { MuscleGroup, User } from '@prisma/client';
+import { Exercise, MuscleGroup, User } from '@prisma/client';
 import { INestApplication } from '@nestjs/common';
 
 import { AuthPayload, RefreshPayload } from '../../src/modules/auth/type';
@@ -14,6 +14,7 @@ import { UserFixtures } from './user.fixtures';
 export type LoadFixtures = {
   users?: User[];
   muscleGroups?: MuscleGroup[];
+  exercises?: Exercise[];
 };
 
 export interface ITestApplication {
@@ -44,13 +45,16 @@ export class AppFixtures implements ITestApplication {
 
   async load(fixtures: LoadFixtures): Promise<void> {
     const prisma = this._app.get(PrismaService);
-    const { users, muscleGroups } = fixtures;
+    const { users, muscleGroups, exercises } = fixtures;
 
     if (users) {
       prisma.user.createMany({ data: await UserFixtures.hashPasswords(users) });
     }
     if (muscleGroups) {
       prisma.muscleGroup.createMany({ data: muscleGroups });
+    }
+    if (exercises) {
+      prisma.exercise.createMany({ data: exercises });
     }
   }
 

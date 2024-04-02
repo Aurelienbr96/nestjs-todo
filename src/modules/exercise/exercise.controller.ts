@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
 import { ExerciseService } from './exercise.service';
 import * as Documentation from './type/Documentation';
 import { ExerciseToCreateDTO, ExerciseToUpdateDTO } from './dto';
-import { ExerciseWithMuscleGroups, flattenExercise } from './utils';
+import { flattenExercise } from './utils';
+import { ExerciseWithMuscleGroups } from './type/Exercise';
 
 @ApiTags('exercise')
 @Controller('exercise')
@@ -31,6 +32,7 @@ export class ExerciseController {
   @Get('/:id')
   async findExercise(@Param('id', ParseIntPipe) id: number) {
     const exercise = await this.exercise.findUnique(id);
+    if (!exercise) throw new NotFoundException(`the exercise for id:${id} has not been found`);
     return flattenExercise(exercise as ExerciseWithMuscleGroups);
   }
 

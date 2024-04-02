@@ -1,12 +1,4 @@
-import { Exercise, MuscleGroup } from '@prisma/client';
-
-interface ExerciseMuscleGroup {
-  muscleGroup: MuscleGroup;
-}
-
-export interface ExerciseWithMuscleGroups extends Exercise {
-  muscleGroups: ExerciseMuscleGroup[];
-}
+import { ExerciseWithMuscleGroups } from '../type/Exercise';
 
 export const flattenExercise = (exercises: ExerciseWithMuscleGroups | Array<ExerciseWithMuscleGroups>) => {
   if (Array.isArray(exercises)) {

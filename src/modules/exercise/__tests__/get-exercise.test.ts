@@ -1,21 +1,28 @@
 import request from 'supertest';
 
-import { AppFixtures, ExerciseFixture, ITestApplication } from '../../../../testing/fixtures';
-import { ExerciseToCreateDTO } from '../dto';
+import {
+  AppFixtures,
+  ExerciseFixture,
+  ITestApplication,
+  MuscleGroupFixtures,
+  UserFixtures,
+} from '../../../../testing/fixtures';
 
-describe('/exercise', () => {
+// generate needs to create an exercise with a list of muscle group Ids (actually or not?)
+// we need to do a transaction anyway
+
+describe('GET /exercise', () => {
   let app: ITestApplication;
 
-  const exerciseToCreate: ExerciseToCreateDTO = {
-    name: ExerciseFixture.exercise.create.name,
-    description: ExerciseFixture.exercise.create.description as string,
-    userId: 5,
-    muscleGroupIds: [5],
-  };
+  const exercise = ExerciseFixture.generate({ id: 1 });
+  const user = UserFixtures.generate({ id: 1 });
+  const muscle = MuscleGroupFixtures.generate({ id: 1 });
   // let cookie: string;
 
   beforeAll(async () => {
     app = await AppFixtures.createApplication();
+    const { muscleGroupIds, ...rest } = exercise;
+    await app.load({ users: [user], muscleGroups: [muscle], exercises: [rest] });
     // cookie = await UserFixtures.generateAccessCookie(app, UserFixtures.stored.admin.id);
   });
 
@@ -23,62 +30,42 @@ describe('/exercise', () => {
     await app.close();
   });
 
-  describe('POST /exercise', () => {
-    it('Should create an exercise', async () => {
-      return request(app.getHttpServer())
-        .post('/exercise')
-        .send(exerciseToCreate)
-        .expect(201)
-        .then((response) => {
-          expect(response.body).toEqual(ExerciseFixture.stored.exercise);
-        });
-    });
+  it('Should find all exercise', () => {
+    // @TODO teddy bb chat renommage des propriété entre la requete post et ce que le serveur renvoie, bonne idée ?
+    // const { muscleGroupIds, ...exerciseWithoutMuscleGroupIds } = exercise;
+    return request(app.getHttpServer())
+      .get('/exercise?page=1')
+      .send()
+      .expect(200)
+      .then((response) => {
+        const { exercises, pages } = response.body;
+
+        expect(exercises.length).toBe(1);
+        expect(pages).toBe(1);
+        expect(exercises).toEqual([{ ...exercise, muscleGroups: [] }]);
+      });
   });
 
-  describe('GET /exercise', () => {
-    it('Should find all exercise', () => {
+  describe('get one', () => {
+    it('Should find a unique exercise', () => {
       return request(app.getHttpServer())
-        .get('/exercise')
+        .get(`/exercise/${exercise.id}`)
         .send()
         .expect(200)
         .then((response) => {
-          expect(response.body).toEqual(ExerciseFixture.stored.all);
+          expect(response.body).toEqual({ ...exercise, muscleGroups: [] });
         });
     });
 
-    describe('get one', () => {
-      it('Should find a unique exercise', () => {
-        return request(app.getHttpServer())
-          .get(`/exercise/${ExerciseFixture.stored.exercise.id}`)
-          .send()
-          .expect(200)
-          .then((response) => {
-            expect(response.body).toEqual(ExerciseFixture.stored.all);
-          });
-      });
-
-      it('Should throw an error if the exercise does not exist', async () => {
-        const unexistingId = 400;
-        await request(app.getHttpServer())
-          .get(`/exercise/${unexistingId}`)
-          .send()
-          .expect(200)
-          .then((response): any => {
-            expect(response.body).toEqual(4);
-          });
-      });
+    it('Should throw an error if the exercise does not exist', async () => {
+      const unexistingId = 400;
+      await request(app.getHttpServer())
+        .get(`/exercise/${unexistingId}`)
+        .send()
+        .expect(404)
+        .then((response): any => {
+          expect(response.body.message).toEqual('the exercise for id:400 has not been found');
+        });
     });
-  });
-
-  describe('PUT /exercise', () => {
-    it('Should display an error if other params are given', () => {});
-
-    it('Should throw an error if the ID does not exist', () => {});
-  });
-
-  describe('DELETE /exercise', () => {
-    it('Should delete an existing resource', () => {});
-
-    it('Should delete multiple existing resource', async () => {});
   });
 });
