@@ -21,7 +21,7 @@ describe('POST auth/refresh-token', () => {
   });
 
   it('Should return a user account', async () => {
-    const cookie = await app.generateAccessCookie(user.id);
+    const cookie = await app.generateRefreshCookie(user.id);
 
     return request(app.getHttpServer())
       .post('/auth/refresh-token')

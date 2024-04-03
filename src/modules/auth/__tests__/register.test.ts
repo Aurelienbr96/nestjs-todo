@@ -1,5 +1,6 @@
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
+import { User } from '@prisma/client';
 
 import { PrismaService } from '../../../modules/common';
 import { AppFixtures, ITestApplication, UserFixtures } from '../../../../testing/fixtures';
@@ -21,12 +22,17 @@ describe('POST /register', () => {
 
   describe('Successful register', () => {
     let response: SuperTestResponse<PublicUserModel>;
+    let stored: User;
 
     beforeAll(async () => {
       response = await request(app.getHttpServer())
         .post('/auth/register')
         .send({ email: userToRegister.email, password: userToRegister.password })
         .expect(201);
+      const prisma = app.get(PrismaService);
+      stored = await prisma.user.findFirst({
+        where: { id: response.body.id },
+      });
     });
 
     it('Should create a user', () => {
@@ -34,14 +40,11 @@ describe('POST /register', () => {
         id: userToRegister.id,
         email: userToRegister.email,
         role: userToRegister.role,
+        refresh: stored.refresh,
       });
     });
 
     it('should store user with hashed password', async () => {
-      const prisma = app.get(PrismaService);
-      const stored = await prisma.user.findFirst({
-        where: { id: response.body.id },
-      });
       if (!stored) throw new Error('unable to find user');
       const { password, ...user } = stored;
       const valid = await bcrypt.compare(userToRegister.password, password);
@@ -50,6 +53,7 @@ describe('POST /register', () => {
         id: userToRegister.id,
         email: userToRegister.email,
         role: userToRegister.role,
+        refresh: stored.refresh,
       });
     });
   });

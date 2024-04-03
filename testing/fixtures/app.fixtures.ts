@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Test } from '@nestjs/testing';
-import { generatePrismock } from 'prismock';
-import { Exercise, MuscleGroup, User } from '@prisma/client';
+import { PrismockClient } from 'prismock';
+import { Exercise, ExerciseMuscleGroup, MuscleGroup, User } from '@prisma/client';
 import { INestApplication } from '@nestjs/common';
 
 import { AuthPayload, RefreshPayload } from '../../src/modules/auth/type';
@@ -15,6 +15,7 @@ export type LoadFixtures = {
   users?: User[];
   muscleGroups?: MuscleGroup[];
   exercises?: Exercise[];
+  exerciseMuscleGroup?: ExerciseMuscleGroup[];
 };
 
 export interface ITestApplication {
@@ -45,7 +46,7 @@ export class AppFixtures implements ITestApplication {
 
   async load(fixtures: LoadFixtures): Promise<void> {
     const prisma = this._app.get(PrismaService);
-    const { users, muscleGroups, exercises } = fixtures;
+    const { users, muscleGroups, exercises, exerciseMuscleGroup } = fixtures;
 
     if (users) {
       prisma.user.createMany({ data: await UserFixtures.hashPasswords(users) });
@@ -55,6 +56,9 @@ export class AppFixtures implements ITestApplication {
     }
     if (exercises) {
       prisma.exercise.createMany({ data: exercises });
+    }
+    if (exerciseMuscleGroup) {
+      prisma.exerciseMuscleGroup.createMany({ data: exerciseMuscleGroup });
     }
   }
 
@@ -107,7 +111,7 @@ export class AppFixtures implements ITestApplication {
   }
 
   static async createApplication() {
-    const prisMock = await generatePrismock();
+    const prisMock = new PrismockClient();
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],

@@ -24,8 +24,9 @@ export class ExerciseController {
 
   @Documentation.ExerciseOperationPost()
   @Post()
-  createExercise(@Body() exercise: ExerciseToCreateDTO) {
-    return this.exercise.create(exercise);
+  async createExercise(@Body() exercise: ExerciseToCreateDTO) {
+    const ex = await this.exercise.create(exercise);
+    return ex;
   }
 
   @Documentation.ExerciseOperationGetOne()

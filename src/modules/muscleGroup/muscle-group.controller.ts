@@ -4,7 +4,7 @@ import { Role } from '@prisma/client';
 
 import { UseAuthGuard } from '../auth/decorators/use-auth-guard.decorator';
 
-import { MuscleToCreateDTO, MuscleToUpdateDTO } from './dto';
+import { ManyMuscleToDeleteDTO, MuscleToCreateDTO, MuscleToUpdateDTO } from './dto';
 import { MuscleGroupService } from './muscle-group.service';
 import * as Documentation from './type/Documentation';
 
@@ -58,11 +58,11 @@ export class MuscleGroupController {
   @Documentation.MuscleGroupOperationDeleteMany()
   @UseAuthGuard(Role.ADMIN)
   @Delete()
-  async deleteMany(@Body('ids') ids: number[]) {
-    const result = await this.muscleGroup.deleteMany(ids);
+  async deleteMany(@Body() body: ManyMuscleToDeleteDTO) {
+    const result = await this.muscleGroup.deleteMany(body.ids);
 
     if (result.count === 0) {
-      throw new NotFoundException(`Muscle groups with IDs ${ids.join(', ')} have not been found.`);
+      throw new NotFoundException(`Muscle groups with IDs ${body.ids.join(', ')} have not been found.`);
     }
     return result;
   }

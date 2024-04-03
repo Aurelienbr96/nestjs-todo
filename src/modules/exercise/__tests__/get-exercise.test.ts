@@ -8,21 +8,24 @@ import {
   UserFixtures,
 } from '../../../../testing/fixtures';
 
-// generate needs to create an exercise with a list of muscle group Ids (actually or not?)
-// we need to do a transaction anyway
-
 describe('GET /exercise', () => {
   let app: ITestApplication;
 
-  const exercise = ExerciseFixture.generate({ id: 1 });
   const user = UserFixtures.generate({ id: 1 });
+
   const muscle = MuscleGroupFixtures.generate({ id: 1 });
-  // let cookie: string;
+  const exercise = ExerciseFixture.generate({ id: 1, userId: user.id, muscleGroupIds: [muscle.id] });
+  const { muscleGroupIds, ...exerciseWithoutMuscleGroupIds } = exercise;
 
   beforeAll(async () => {
     app = await AppFixtures.createApplication();
     const { muscleGroupIds, ...rest } = exercise;
-    await app.load({ users: [user], muscleGroups: [muscle], exercises: [rest] });
+    await app.load({
+      users: [user],
+      muscleGroups: [muscle],
+      exercises: [rest],
+      exerciseMuscleGroup: [{ exerciseId: exercise.id, muscleGroupId: muscle.id }],
+    });
     // cookie = await UserFixtures.generateAccessCookie(app, UserFixtures.stored.admin.id);
   });
 
@@ -31,8 +34,6 @@ describe('GET /exercise', () => {
   });
 
   it('Should find all exercise', () => {
-    // @TODO teddy bb chat renommage des propriété entre la requete post et ce que le serveur renvoie, bonne idée ?
-    // const { muscleGroupIds, ...exerciseWithoutMuscleGroupIds } = exercise;
     return request(app.getHttpServer())
       .get('/exercise?page=1')
       .send()
@@ -42,7 +43,7 @@ describe('GET /exercise', () => {
 
         expect(exercises.length).toBe(1);
         expect(pages).toBe(1);
-        expect(exercises).toEqual([{ ...exercise, muscleGroups: [] }]);
+        expect(exercises).toEqual([{ ...exerciseWithoutMuscleGroupIds, muscleGroups: [muscle.id] }]);
       });
   });
 
@@ -53,7 +54,7 @@ describe('GET /exercise', () => {
         .send()
         .expect(200)
         .then((response) => {
-          expect(response.body).toEqual({ ...exercise, muscleGroups: [] });
+          expect(response.body).toEqual({ ...exerciseWithoutMuscleGroupIds, muscleGroups: [muscle.id] });
         });
     });
 
