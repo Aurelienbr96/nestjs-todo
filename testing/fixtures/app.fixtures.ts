@@ -18,6 +18,8 @@ export type LoadFixtures = {
   exerciseMuscleGroup?: ExerciseMuscleGroup[];
 };
 
+type TestConfig = Exclude<Config, Config.Port>;
+
 export interface ITestApplication {
   generateAccessCookie(userId: number): Promise<string>;
   generateRefreshCookie(userId: number): Promise<string>;
@@ -110,6 +112,19 @@ export class AppFixtures implements ITestApplication {
     return `access-token=${accessToken}`;
   }
 
+  private static get config() {
+    const env: Record<TestConfig, string> = {
+      JWT_REFRESH_SECRET_KEY: 'testingrefreshsecretkey',
+      JWT_SECRET_KEY: 'testingsecretkey',
+      NODE_ENV: 'testing',
+    };
+
+    return {
+      get: (key: TestConfig) => env[key],
+      getNumber: (key: TestConfig) => parseInt(env[key]),
+    };
+  }
+
   static async createApplication() {
     const prisMock = new PrismockClient();
 
@@ -118,6 +133,8 @@ export class AppFixtures implements ITestApplication {
     })
       .overrideProvider(PrismaService)
       .useValue(prisMock)
+      .overrideProvider(ConfigService)
+      .useValue(AppFixtures.config)
       .compile();
 
     const app = moduleRef.createNestApplication();
