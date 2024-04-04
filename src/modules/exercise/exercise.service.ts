@@ -89,33 +89,33 @@ export class ExerciseService {
 
       const toBeRemoved = oldMuscleGroupIds.filter((id) => !newMuscleGroupIds.includes(id));
 
-      await tx.exercise.update({
-        data: {
-          name,
-          description,
-        },
-        where: {
-          id,
-        },
-      });
-
-      await tx.exerciseMuscleGroup.createMany({
-        data: toBeAdded.map((muscleGroupId) => {
-          return {
-            exerciseId: id,
-            muscleGroupId,
-          };
-        }),
-      });
-
-      await tx.exerciseMuscleGroup.deleteMany({
-        where: {
-          exerciseId: id,
-          muscleGroupId: {
-            in: toBeRemoved,
+      await Promise.all([
+        tx.exercise.update({
+          data: {
+            name,
+            description,
           },
-        },
-      });
+          where: {
+            id,
+          },
+        }),
+        tx.exerciseMuscleGroup.createMany({
+          data: toBeAdded.map((muscleGroupId) => {
+            return {
+              exerciseId: id,
+              muscleGroupId,
+            };
+          }),
+        }),
+        tx.exerciseMuscleGroup.deleteMany({
+          where: {
+            exerciseId: id,
+            muscleGroupId: {
+              in: toBeRemoved,
+            },
+          },
+        }),
+      ]);
 
       return this.findUnique(id, tx);
     });

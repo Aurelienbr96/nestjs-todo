@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Set" ADD COLUMN     "reps" INTEGER NOT NULL DEFAULT 0;
