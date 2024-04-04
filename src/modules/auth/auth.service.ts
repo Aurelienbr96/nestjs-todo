@@ -16,10 +16,7 @@ export class AuthService {
 
   signRefreshToken(id: number, uuid: string) {
     const secret = this.config.get('JWT_REFRESH_SECRET_KEY');
-    return this.jwt.sign(
-      { sub: uuid, userId: id },
-      { expiresIn: '7d', secret },
-    );
+    return this.jwt.sign({ sub: uuid, userId: id }, { expiresIn: '7d', secret });
   }
 
   getAccessTokenExpires() {
