@@ -1,25 +1,32 @@
 import jwt from 'jsonwebtoken';
 import { Test } from '@nestjs/testing';
-import { generatePrismock } from 'prismock';
-
-import { configure } from '../../src/server';
-import { AppModule, Config, ConfigService, PrismaService } from '../../src/modules';
-
-import { User } from '@prisma/client';
+import { PrismockClient } from 'prismock';
+import { Exercise, ExerciseMuscleGroup, MuscleGroup, User } from '@prisma/client';
 import { INestApplication } from '@nestjs/common';
-import { AuthPayload, RefreshPayload } from 'src/modules/auth/type';
+
+import { AuthPayload, RefreshPayload } from '../../src/modules/auth/type';
+import { AuthService } from '../../src/modules/auth/auth.service';
+import { AppModule, Config, ConfigService, PrismaService } from '../../src/modules';
+import { configure } from '../../src/server';
+
 import { UserFixtures } from './user.fixtures';
 
 export type LoadFixtures = {
-  users: User[];
+  users?: User[];
+  muscleGroups?: MuscleGroup[];
+  exercises?: Exercise[];
+  exerciseMuscleGroup?: ExerciseMuscleGroup[];
 };
 
 export interface ITestApplication {
+  generateAccessCookie(userId: number): Promise<string>;
+  generateRefreshCookie(userId: number): Promise<string>;
   getHttpServer(): string;
   close(): Promise<void>;
   load(fixtures: LoadFixtures): Promise<void>;
   verifyAccessToken(token: string): Promise<AuthPayload>;
   verifyRefreshToken(token: string): Promise<RefreshPayload>;
+  get(service: any): any;
 }
 
 export class AppFixtures implements ITestApplication {
@@ -33,12 +40,25 @@ export class AppFixtures implements ITestApplication {
     return this._app.close();
   }
 
+  get(service: any) {
+    return this._app.get(service);
+  }
+
   async load(fixtures: LoadFixtures): Promise<void> {
     const prisma = this._app.get(PrismaService);
-    const { users } = fixtures;
+    const { users, muscleGroups, exercises, exerciseMuscleGroup } = fixtures;
 
     if (users) {
       prisma.user.createMany({ data: await UserFixtures.hashPasswords(users) });
+    }
+    if (muscleGroups) {
+      prisma.muscleGroup.createMany({ data: muscleGroups });
+    }
+    if (exercises) {
+      prisma.exercise.createMany({ data: exercises });
+    }
+    if (exerciseMuscleGroup) {
+      prisma.exerciseMuscleGroup.createMany({ data: exerciseMuscleGroup });
     }
   }
 
@@ -68,8 +88,30 @@ export class AppFixtures implements ITestApplication {
     });
   }
 
+  async generateRefreshCookie(userId: number) {
+    const auth = this._app.get(AuthService);
+    const prisma = this._app.get(PrismaService);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error(`Unable to find user with id ${userId}`);
+
+    const refreshToken = auth.signRefreshToken(user.id, user.refresh);
+    return `refresh-token=${refreshToken}`;
+  }
+
+  async generateAccessCookie(userId: number) {
+    const auth = this._app.get(AuthService);
+    const prisma = this._app.get(PrismaService);
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error(`Unable to find user with id ${userId}`);
+
+    const accessToken = auth.signAccessToken(user.id, user.email, user.role);
+    return `access-token=${accessToken}`;
+  }
+
   static async createApplication() {
-    const prisMock = await generatePrismock();
+    const prisMock = new PrismockClient();
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],

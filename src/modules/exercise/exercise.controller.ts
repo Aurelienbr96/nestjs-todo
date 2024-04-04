@@ -1,17 +1,18 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 import { ExerciseService } from './exercise.service';
+import * as Documentation from './type/Documentation';
 import { ExerciseToCreateDTO, ExerciseToUpdateDTO } from './dto';
-import { CreatedExercise } from './type/Exercise';
-import { ExerciseWithMuscleGroups, flattenExercise } from './utils';
+import { flattenExercise } from './utils';
+import { ExerciseWithMuscleGroups } from './type/Exercise';
 
 @ApiTags('exercise')
 @Controller('exercise')
 export class ExerciseController {
   constructor(private exercise: ExerciseService) {}
 
-  @ApiOperation({ summary: 'Get the list of exercises' })
+  @Documentation.ExerciseOperationGetAll()
   @Get()
   async getAllExercises(@Query('page', ParseIntPipe) page: number) {
     const paginatedExercises = await this.exercise.findByPage(page);
@@ -21,39 +22,30 @@ export class ExerciseController {
     };
   }
 
+  @Documentation.ExerciseOperationPost()
   @Post()
-  @ApiCreatedResponse({
-    description: 'Create one exercise',
-    type: CreatedExercise,
-  })
-  createExercise(@Body() exercise: ExerciseToCreateDTO) {
-    return this.exercise.create(exercise);
+  async createExercise(@Body() exercise: ExerciseToCreateDTO) {
+    const ex = await this.exercise.create(exercise);
+    return ex;
   }
 
+  @Documentation.ExerciseOperationGetOne()
   @Get('/:id')
-  @ApiOkResponse({
-    description: 'Find one exercise',
-  })
   async findExercise(@Param('id', ParseIntPipe) id: number) {
     const exercise = await this.exercise.findUnique(id);
+    if (!exercise) throw new NotFoundException(`the exercise for id:${id} has not been found`);
     return flattenExercise(exercise as ExerciseWithMuscleGroups);
   }
 
   @Put(':id')
-  @ApiOkResponse({
-    description: 'The exercise has been successfully updated.',
-    type: CreatedExercise,
-  })
+  @Documentation.ExerciseOperationUpdate()
   async updateExercise(@Param('id', ParseIntPipe) id: number, @Body() exercise: ExerciseToUpdateDTO) {
     const updatedExercise = await this.exercise.update(id, exercise);
     return flattenExercise(updatedExercise as ExerciseWithMuscleGroups);
   }
 
+  @Documentation.ExerciseOperationDelete()
   @Delete(':id')
-  @ApiOkResponse({
-    description: 'The exercise has been successfully deleted.',
-    type: CreatedExercise,
-  })
   deleteExercise(@Param('id', ParseIntPipe) id: number) {
     return this.exercise.delete(id);
   }
