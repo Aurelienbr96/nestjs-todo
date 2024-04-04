@@ -31,15 +31,9 @@ describe('configure', () => {
   });
 
   it('should return a success', () => {
-    return request(app.getHttpServer())
-      .post('/')
-      .send({ property: 'content' })
-      .expect(201);
+    return request(app.getHttpServer()).post('/').send({ property: 'content' }).expect(201);
   });
   it('should return an error with extra properties', () => {
-    return request(app.getHttpServer())
-      .post('/')
-      .send({ property: 'content', extra: true })
-      .expect(400);
+    return request(app.getHttpServer()).post('/').send({ property: 'content', extra: true }).expect(400);
   });
 });
