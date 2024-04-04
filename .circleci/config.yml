@@ -4,7 +4,7 @@ version: 2.1
 jobs:
   install:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:21.7.0
     steps:
       - checkout
       - run: yarn
@@ -16,28 +16,28 @@ jobs:
             - .
   typescript:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:21.7.0
     steps:
       - attach_workspace:
           at: ~/project
       - run: yarn tsc
   eslint:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:21.7.0
     steps:
       - attach_workspace:
           at: ~/project
       - run: yarn lint
   unit:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:21.7.0
     steps:
       - attach_workspace:
           at: ~/project
       - run: yarn test -w 1
   e2e:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:21.7.0
       - image: cimg/postgres:14.0
         auth:
           username: $DOCKERHUB_USERNAME
@@ -60,7 +60,7 @@ jobs:
       - run: yarn start > /dev/null & npx wait-on http://localhost:3000 && yarn test:e2e
   deploy_to_dev:
     docker:
-      - image: cimg/node:18.12.1
+      - image: cimg/node:21.7.0
     steps:
       - attach_workspace:
           at: ~/project
