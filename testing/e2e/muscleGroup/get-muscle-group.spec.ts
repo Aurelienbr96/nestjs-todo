@@ -11,7 +11,10 @@ describe('GET /muscle-group', () => {
       .send()
       .expect(200)
       .then((response: SuperTestResponse<PublicMuscleGroupModel>) => {
-        expect(response.body).toEqual('hey');
+        expect(response.body).toEqual([
+          { description: 'pectoral muscle', id: 1, name: 'Back' },
+          { description: 'pectoral muscle', id: 2, name: 'Legs' },
+        ]);
       });
   });
 });

@@ -39,7 +39,7 @@ describe('POST auth/login', () => {
   });
 
   describe('cookies', () => {
-    let cookies: string[];
+    let cookies: string[] | string;
     beforeAll(async () => {
       cookies = await request(app.getHttpServer())
         .post('/auth/login')

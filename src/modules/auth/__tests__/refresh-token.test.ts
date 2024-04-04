@@ -38,7 +38,7 @@ describe('POST auth/refresh-token', () => {
   });
 
   describe('cookies', () => {
-    let cookies: string[];
+    let cookies: string[] | string;
     beforeAll(async () => {
       const cookie = await app.generateRefreshCookie(user.id);
 

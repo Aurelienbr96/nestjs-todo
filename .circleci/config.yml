@@ -1,0 +1,112 @@
+# This config is equivalent to both the '.circleci/extended/orb-free.yml' and the base '.circleci/config.yml'
+version: 2.1
+
+jobs:
+  install:
+    docker:
+      - image: cimg/node:21.7.0
+    steps:
+      - checkout
+      - run: yarn
+      - run: yarn prisma generate
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - node_modules
+            - .
+  typescript:
+    docker:
+      - image: cimg/node:21.7.0
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run: yarn tsc
+  eslint:
+    docker:
+      - image: cimg/node:21.7.0
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run: yarn lint
+  unit:
+    docker:
+      - image: cimg/node:21.7.0
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run: yarn test -w 1
+  e2e:
+    docker:
+      - image: cimg/node:21.7.0
+      - image: cimg/postgres:14.0
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASSWORD
+        environment:
+          POSTGRES_PASSWORD: 'postgres'
+          POSTGRES_DB: e2e
+          POSTGRES_USER: test
+    environment:
+      DATABASE_URL: postgres://test:postgres@localhost/e2e
+      JWT_SECRET_KEY: secretkey
+      JWT_REFRESH_SECRET_KEY: refreshsecretkey
+      PORT: 3000
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run: yarn build
+      - run: yarn prisma migrate deploy
+      - run: yarn prisma db seed
+      - run: yarn start > /dev/null & npx wait-on http://localhost:3000 && yarn test:e2e
+  deploy_to_dev:
+    docker:
+      - image: cimg/node:21.7.0
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run: yarn build
+      - run: export DATABASE_URL=$DEV_DATABASE_URL && yarn prisma migrate deploy
+      - run:
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get install python3-pip python3-dev build-essential
+            sudo pip3 install awsebcli
+      - run: eb deploy Nestscalable-env
+workflows:
+  feature_check:
+    jobs:
+      - install:
+          filters:
+            branches:
+              ignore:
+                - develop
+                - master
+      - typescript:
+          requires:
+            - install
+      - eslint:
+          requires:
+            - install
+      - unit:
+          requires:
+            - install
+      - e2e:
+          requires:
+            - install
+  develop_check_and_deploy:
+    jobs:
+      - install:
+          filters:
+            branches:
+              only:
+                - develop
+      - unit:
+          requires:
+            - install
+      - e2e:
+          requires:
+            - install
+      - deploy_to_dev:
+          requires:
+            - unit
+            - e2e
