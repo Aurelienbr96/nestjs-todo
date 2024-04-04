@@ -15,6 +15,11 @@ export class MuscleGroupService {
     return this.prisma.muscleGroup.findUnique({ where: { id } });
   }
 
+  async areAllIdsFound(ids: number[]) {
+    const found = await this.prisma.muscleGroup.findMany({ where: { id: { in: ids } } });
+    return found.length === ids.length;
+  }
+
   async findAll() {
     return this.prisma.muscleGroup.findMany();
   }

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Res, /* Res, */ UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiCreatedResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
@@ -10,12 +10,8 @@ import { UserToRegisterDTO } from './dto/user-to-register.dto';
 import { PublicUserModel, UserModel } from './type';
 import { Auth } from './decorators';
 import { UserToLoginDTO } from './dto/user-to-login.dto';
-// import { UserToLoginDTO } from './dto/user-to-login.dto';
 import { AuthService } from './auth.service';
 
-/* 
-@Res() _res: Response,
-@Body() _: UserToLoginDTO, */
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {

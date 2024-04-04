@@ -1,14 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from '../common';
+import { MuscleGroupService } from '../muscleGroup';
 
 import { ExerciseToCreateDTO, ExerciseToUpdateDTO } from './dto';
 import { flattenExercise } from './utils';
 
 @Injectable()
 export class ExerciseService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private muscleGroupService: MuscleGroupService) {}
   async findByPage(page: number) {
     const [exercises, count] = await Promise.all([
       this.prisma.exercise.findMany({
@@ -50,6 +51,12 @@ export class ExerciseService {
 
   async create({ name, description, muscleGroupIds, userId }: ExerciseToCreateDTO) {
     const result = await this.prisma.$transaction(async (tx) => {
+      const result = await this.muscleGroupService.areAllIdsFound(muscleGroupIds);
+
+      if (!result) {
+        throw new BadRequestException('Tried to create an exercise with non existing muscles groups');
+      }
+
       const exercise = await tx.exercise.create({
         data: {
           name: name,
@@ -73,7 +80,7 @@ export class ExerciseService {
   async update(id: number, { muscleGroupIds: newMuscleGroupIds, description, name }: ExerciseToUpdateDTO) {
     const result = await this.prisma.$transaction(async (tx) => {
       const actualExercise = await this.findUnique(id);
-      if (!actualExercise) throw new NotFoundException(`Exercise ID ${id} have not been found.`);
+      if (!actualExercise) throw new BadRequestException(`Exercise ID ${id} have not been found`);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const oldMuscleGroupIds: number[] = flattenExercise(actualExercise).muscleGroups;
@@ -118,7 +125,7 @@ export class ExerciseService {
   async delete(id: number) {
     const result = await this.prisma.$transaction(async (tx) => {
       const actualExercise = await this.findUnique(id);
-      if (!actualExercise) throw new NotFoundException(`Exercise ID ${id} have not been found.`);
+      if (!actualExercise) throw new BadRequestException(`Exercise ID ${id} have not been found.`);
       await tx.exerciseMuscleGroup.deleteMany({
         where: {
           exerciseId: id,

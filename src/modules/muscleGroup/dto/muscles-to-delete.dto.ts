@@ -6,3 +6,9 @@ export class MuscleToDeleteDTO {
   @IsArray()
   ids!: number;
 }
+
+export class ManyMuscleToDeleteDTO {
+  @ApiProperty()
+  @IsArray()
+  ids!: number[];
+}
