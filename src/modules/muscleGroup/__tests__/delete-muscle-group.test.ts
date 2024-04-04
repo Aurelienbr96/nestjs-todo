@@ -7,14 +7,19 @@ import { AppFixtures, ITestApplication, UserFixtures } from '../../../../testing
 describe('DELETE /muscle-group', () => {
   let app: ITestApplication;
 
-  const muscle = MuscleGroupFixtures.generate({ id: 1 });
+  const muscles = [
+    MuscleGroupFixtures.generate({ id: 1 }),
+    MuscleGroupFixtures.generate({ id: 2 }),
+    MuscleGroupFixtures.generate({ id: 3 }),
+  ];
+
   const user = UserFixtures.generate({ id: 1, role: Role.ADMIN });
-  const { id } = muscle;
+  const { id } = muscles[0];
   let cookie: string;
 
   beforeAll(async () => {
     app = await AppFixtures.createApplication();
-    await app.load({ muscleGroups: [muscle, muscle, muscle], users: [user] });
+    await app.load({ muscleGroups: muscles, users: [user] });
     cookie = await app.generateAccessCookie(user.id);
   });
 
@@ -30,7 +35,7 @@ describe('DELETE /muscle-group', () => {
         .send()
         .expect(200)
         .then((response) => {
-          expect(response.body).toEqual(muscle);
+          expect(response.body).toEqual(muscles[0]);
         });
     });
 
@@ -38,7 +43,7 @@ describe('DELETE /muscle-group', () => {
       return request(app.getHttpServer())
         .delete(`/muscle-group`)
         .set('Cookie', [cookie])
-        .send({ ids: [1, 2] })
+        .send({ ids: [muscles[1].id, muscles[2].id] })
         .expect(200)
         .then((response) => {
           expect(response.body).toEqual({
