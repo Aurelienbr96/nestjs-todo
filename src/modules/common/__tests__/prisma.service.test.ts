@@ -1,3 +1,4 @@
+/* eslint-disable no-global-assign */
 import { PrismaService } from '../prisma.service';
 
 const mockConnect = jest.fn();
@@ -8,14 +9,23 @@ jest.mock('@prisma/client', () => ({
     $connect() {
       mockConnect();
     }
-
-    $on(_: string, cb: () => void) {
-      cb();
-    }
   },
 }));
 
 describe('prismaService', () => {
+  const originalProcess = process;
+  beforeEach(() => {
+    jest.resetModules();
+    process = {
+      ...originalProcess,
+      on: jest.fn((_: string, cb: () => void) => {
+        cb();
+      }) as any,
+    };
+  });
+  afterEach(() => {
+    process = originalProcess;
+  });
   it('should call connect when app init', () => {
     const service = new PrismaService();
     service.onModuleInit();

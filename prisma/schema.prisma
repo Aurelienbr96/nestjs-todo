@@ -17,7 +17,37 @@ model User {
   password String @db.VarChar(255)
   role     Role   @default(USER)
   refresh String @unique @default(uuid())
+  exercise Exercise[]
 }
+
+model MuscleGroup {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?
+  muscleGroups    ExerciseMuscleGroup[] 
+}
+
+model Exercise {
+  id            Int         @id @default(autoincrement())
+  name          String
+  description   String
+  muscleGroups    ExerciseMuscleGroup[]
+  userId        Int? // Nullable relation to User
+  createdBy     User?       @relation(fields: [userId], references: [id])
+
+  @@index([userId]) // Optional: Improves query performance on the userId field
+}
+
+// Join table for the many-to-many relationship between Exercise and MuscleGroup
+model ExerciseMuscleGroup {
+  exerciseId   Int
+  muscleGroupId Int
+  exercise     Exercise  @relation(fields: [exerciseId], references: [id])
+  muscleGroup  MuscleGroup @relation(fields: [muscleGroupId], references: [id])
+
+  @@id([exerciseId, muscleGroupId])
+}
+
 
 enum Role {
   USER
