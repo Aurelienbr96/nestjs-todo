@@ -21,6 +21,7 @@ export class MuscleGroupController {
   }
 
   @Documentation.MuscleGroupOperationGetAll()
+  @UseAuthGuard(Role.USER)
   @Get()
   async findAll() {
     const muscleGroup = await this.muscleGroup.findAll();

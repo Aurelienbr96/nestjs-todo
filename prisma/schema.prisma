@@ -14,9 +14,10 @@ datasource db {
 model User {
   id       Int    @id @default(autoincrement())
   email    String @unique @db.VarChar(255)
-  password String @db.VarChar(255)
+  password String? @db.VarChar(255)
+  googleId String? @db.VarChar(255)
   role     Role   @default(USER)
-  refresh String @unique @default(uuid())
+  refresh String? @unique @default(uuid())
   exercise Exercise[]
 }
 
@@ -51,5 +52,6 @@ model ExerciseMuscleGroup {
 
 enum Role {
   USER
+  COACH
   ADMIN
 }

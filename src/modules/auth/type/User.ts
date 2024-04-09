@@ -13,6 +13,9 @@ export class PublicUserModel {
 
   @ApiProperty()
   refresh!: string;
+
+  @ApiProperty()
+  googleId!: string;
 }
 
 export class UserModel extends PublicUserModel {

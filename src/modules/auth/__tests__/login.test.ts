@@ -33,6 +33,7 @@ describe('POST auth/login', () => {
         expect(response.body).toEqual({
           id: user.id,
           email: user.email,
+          googleId: null,
           role: user.role,
         });
       });

@@ -10,6 +10,13 @@ import { setUpPrisma } from './prisma';
 export async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
+  app.enableCors({
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+    origin: 'http://localhost:3001',
+  });
   configure(app);
   await setUpSwagger(app);
   setUpPrisma(app);

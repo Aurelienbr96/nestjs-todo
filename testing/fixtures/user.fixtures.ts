@@ -13,7 +13,7 @@ export class UserFixtures {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error(`Unable to find user with id ${userId}`);
 
-    const refreshToken = auth.signRefreshToken(user.id, user.refresh);
+    const refreshToken = auth.signRefreshToken(user.id, user.refresh as string);
     return `refresh-token=${refreshToken}`;
   }
 
@@ -36,6 +36,7 @@ export class UserFixtures {
       password: `userpassword-${id}`,
       refresh: `refresh-${id}`,
       role: 'USER',
+      googleId: null,
       ...user,
     };
   }
@@ -46,7 +47,7 @@ export class UserFixtures {
       return bcrypt.hash(password, salt);
     };
 
-    const passwords = await Promise.all(users.map((user) => hash(user.password)));
+    const passwords = await Promise.all(users.map((user) => hash(user.password as string)));
 
     return users.map((user, i) => ({ ...user, password: passwords[i] }));
   }
