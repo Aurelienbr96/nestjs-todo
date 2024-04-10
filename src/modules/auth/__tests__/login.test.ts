@@ -35,6 +35,7 @@ describe('POST auth/login', () => {
           email: user.email,
           googleId: null,
           role: user.role,
+          referalCode: null,
         });
       });
   });

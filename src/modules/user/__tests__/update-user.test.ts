@@ -41,6 +41,7 @@ describe('PUT /users', () => {
           id: user.id,
           refresh: user.refresh,
           role: user.role,
+          referalCode: null,
         });
       });
   });
@@ -63,6 +64,7 @@ describe('PUT /users', () => {
           id: user.id,
           refresh: user.refresh,
           role: user.role,
+          referalCode: null,
         });
       });
   });

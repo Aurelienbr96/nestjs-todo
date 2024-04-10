@@ -1,10 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
+import { User } from '@prisma/client';
 
 import { PrismaService } from '../common';
 import { UserToRegisterDTO } from '../auth';
-
-import { UserToUpdateDTO } from './dto/user-to-update.dto';
 
 @Injectable()
 export class UserService {
@@ -37,11 +36,15 @@ export class UserService {
     return this.prisma.user.delete({ where: { id } });
   }
 
-  async updateOne(user: UserToUpdateDTO, id: number) {
+  async updateOne(userToUpdate: Partial<Omit<User, 'id'>>, id: number) {
     try {
-      const hashedPassword = await this.hashpassword(user.password);
+      if (userToUpdate.password) {
+        const hashedPassword = await this.hashpassword(userToUpdate.password);
+        Object.assign(userToUpdate, { password: hashedPassword });
+      }
+
       return this.prisma.user.update({
-        data: { email: user.email, password: hashedPassword },
+        data: userToUpdate,
         where: { id },
       });
     } catch (e) {
@@ -57,6 +60,10 @@ export class UserService {
 
   async findByEmail(email: string) {
     return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async findByReferalCode(referalCode: string) {
+    return this.prisma.user.findUnique({ where: { referalCode } });
   }
 
   async updateRefreshToken(id: number, uuid: string) {

@@ -18,8 +18,21 @@ model User {
   googleId String? @db.VarChar(255)
   role     Role   @default(USER)
   refresh String? @unique @default(uuid())
-  exercise Exercise[]
+  referalCode String? @unique
+  exercise  Exercise[]
+  clients   UserToCoach[] @relation("CoachClients")
+  coaches   UserToCoach[] @relation("UserCoaches")
 }
+
+model UserToCoach {
+  userId   Int
+  coachId  Int
+  client   User @relation("UserCoaches", fields: [userId], references: [id])
+  coach    User @relation("CoachClients", fields: [coachId], references: [id])
+
+  @@id([userId, coachId])
+}
+
 
 model MuscleGroup {
   id          Int        @id @default(autoincrement())

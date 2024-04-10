@@ -37,6 +37,7 @@ export class UserFixtures {
       refresh: `refresh-${id}`,
       role: 'USER',
       googleId: null,
+      referalCode: null,
       ...user,
     };
   }

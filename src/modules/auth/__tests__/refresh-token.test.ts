@@ -33,6 +33,7 @@ describe('POST auth/refresh-token', () => {
           id: user.id,
           email: user.email,
           googleId: null,
+          referalCode: null,
           role: user.role,
         });
       });

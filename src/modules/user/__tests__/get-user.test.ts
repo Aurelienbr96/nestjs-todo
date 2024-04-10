@@ -20,7 +20,7 @@ describe('GET /users', () => {
   });
 
   it('Should find all users', () => {
-    const { password, googleId, ...fetchedUser } = user;
+    const { password, googleId, referalCode, ...fetchedUser } = user;
     return request(app.getHttpServer())
       .get('/user')
       .set('Cookie', [adminCookie])

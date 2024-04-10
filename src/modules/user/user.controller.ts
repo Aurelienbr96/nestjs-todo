@@ -1,18 +1,23 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
+import { v4 as uuid } from 'uuid';
 
 import { AuthGuard } from '../auth/guards';
 import { UseAuthGuard } from '../auth/decorators/use-auth-guard.decorator';
+import { UserModel } from '../auth/type';
+import { Auth } from '../auth/decorators';
 
 import { UserService } from './user.service';
 import { UserToUpdateDTO } from './dto/user-to-update.dto';
 import { UserSelfGuard } from './guards/user-self.guard';
+import { RelationCoachToClientToCreateDTO } from './dto/relation-coach-to-client';
+import { UserToCoachService } from './user-to-coach.service';
 
 @ApiTags('user')
 @Controller('user')
 export class UserController {
-  constructor(private user: UserService) {}
+  constructor(private user: UserService, private userToCoach: UserToCoachService) {}
 
   @ApiOperation({ summary: 'Get list of users' })
   @UseAuthGuard(Role.ADMIN)
@@ -20,6 +25,27 @@ export class UserController {
   async findAll() {
     const users = await this.user.findAll();
     return users;
+  }
+
+  @ApiOperation({ summary: 'add client for coach' })
+  @UseGuards(AuthGuard)
+  @Post('/link-user-to-coach')
+  async AddClient(@Body() linkedIds: RelationCoachToClientToCreateDTO) {
+    const coach = await this.user.findByReferalCode(linkedIds.referalCode);
+    if (!coach) {
+      throw new Error('coach not found');
+    }
+    await this.userToCoach.create(linkedIds.clientId, coach.id);
+  }
+
+  @ApiOperation({ summary: 'generate referal code' })
+  @UseAuthGuard(Role.COACH)
+  @Put('/generate-referal-code')
+  async GenerateReferalCode(@Auth() auth: UserModel) {
+    const user = await this.user.updateOne({ referalCode: uuid() }, auth.id);
+    if (!user?.password) return user;
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   @Delete(':id')

@@ -41,6 +41,7 @@ describe('POST /register', () => {
         email: userToRegister.email,
         role: userToRegister.role,
         googleId: null,
+        referalCode: null,
         refresh: stored.refresh,
       });
     });
@@ -53,6 +54,7 @@ describe('POST /register', () => {
       expect(user).toEqual({
         id: userToRegister.id,
         googleId: null,
+        referalCode: null,
         email: userToRegister.email,
         role: userToRegister.role,
         refresh: stored.refresh,
