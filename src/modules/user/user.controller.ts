@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 
 import { AuthGuard } from '../auth/guards';
 import { UseAuthGuard } from '../auth/decorators/use-auth-guard.decorator';
-import { UserModel } from '../auth/type';
+// import { UserModel } from '../auth/type';
 import { Auth } from '../auth/decorators';
 
 import { UserService } from './user.service';
@@ -41,10 +41,10 @@ export class UserController {
   @ApiOperation({ summary: 'generate referal code' })
   @UseAuthGuard(Role.COACH)
   @Put('/generate-referal-code')
-  async GenerateReferalCode(@Auth() auth: UserModel) {
-    const user = await this.user.updateOne({ referalCode: uuid() }, auth.id);
+  async GenerateReferalCode(@Auth() auth: { sub: number; role: Role }) {
+    const user = await this.user.updateOne({ referalCode: uuid() }, auth.sub);
     if (!user?.password) return user;
-    const { password, ...userWithoutPassword } = user;
+    const { password, refresh, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 

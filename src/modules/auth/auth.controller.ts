@@ -3,7 +3,7 @@ import { ApiCreatedResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/sw
 import { AuthGuard, AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { Prisma } from '@prisma/client';
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { v4 as uuid } from 'uuid';
 
 import { UserService } from '../user';
@@ -14,6 +14,7 @@ import { PublicUserModel, UserModel } from './type';
 import { Auth } from './decorators';
 import { UserToLoginDTO } from './dto/user-to-login.dto';
 import { AuthService } from './auth.service';
+import { GoogleAuthDTO } from './dto/google-auth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -23,30 +24,40 @@ export class AuthController {
     this.googleClient = new OAuth2Client(config.get(Config.GoogleClientId));
   }
 
-  //  @UseGuards(AuthGuard('google'))
   @Post('/google')
-  async googleAuth(@Body() params: any, @Res({ passthrough: true }) res: Response) {
-    const ticket = await this.googleClient.verifyIdToken({
-      idToken: params.credential,
-      audience: this.config.get(Config.GoogleClientId),
-    });
-    const payload = ticket.getPayload();
+  async googleAuth(@Body() params: GoogleAuthDTO, @Res({ passthrough: true }) res: Response) {
+    let payload: TokenPayload | undefined;
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: params.googleCredential.credential,
+        audience: this.config.get(Config.GoogleClientId),
+      });
+
+      payload = ticket.getPayload();
+    } catch (e) {
+      throw new BadRequestException();
+    }
 
     if (!payload) {
-      throw new Error('Invalid token');
+      throw new BadRequestException();
     }
 
     const { sub, email } = payload;
 
     if (!email || !sub) {
-      throw new Error('Error retrieving email');
+      throw new BadRequestException('app.page.login.error.no_email_found');
     }
     let user = await this.user.findByEmail(email);
 
     if (!user) {
-      user = await this.user.createFromGoogle({
-        googleId: sub, // Google's unique ID for the user
+      if (!params.state) throw new BadRequestException('app.page.login.error.not_registered');
+      user = await this.user.create({
+        googleId: sub,
         email,
+        role: params.state.role,
+        password: null,
+        refresh: null,
+        referalCode: params.state.role === 'COACH' ? uuid() : null,
       });
     } else {
       user = await this.user.updateRefreshToken(user.id, uuid());
@@ -68,15 +79,20 @@ export class AuthController {
   @Post('/register')
   async register(@Body() userToRegister: UserToRegisterDTO) {
     try {
-      const { password, ...user } = await this.user.create(userToRegister);
+      const { password, refresh, ...user } = await this.user.create({
+        ...userToRegister,
+        referalCode: userToRegister.role === 'COACH' ? uuid() : null,
+        googleId: null,
+        refresh: null,
+      });
       return user;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
-          throw new BadRequestException('Email already used');
+          throw new BadRequestException('app.page.register.error.email');
         }
       }
-      throw new BadRequestException('an unknown error happened');
+      throw new BadRequestException();
     }
   }
 

@@ -42,7 +42,6 @@ describe('POST /register', () => {
         role: userToRegister.role,
         googleId: null,
         referalCode: null,
-        refresh: stored.refresh,
       });
     });
 

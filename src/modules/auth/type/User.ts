@@ -9,10 +9,10 @@ export class PublicUserModel {
   email!: string;
 
   @ApiProperty()
-  role!: Role;
+  referalCode!: string;
 
   @ApiProperty()
-  refresh!: string;
+  role!: Role;
 
   @ApiProperty()
   googleId!: string;
@@ -21,4 +21,7 @@ export class PublicUserModel {
 export class UserModel extends PublicUserModel {
   @ApiProperty()
   password!: string;
+
+  @ApiProperty()
+  refresh!: string;
 }

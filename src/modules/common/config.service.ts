@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 export class ConfigService {
   constructor() {
     dotenv.config({
-      path: '.env',
+      path: '.env.' + process.env.NODE_ENV || 'development',
     });
   }
 

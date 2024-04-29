@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs';
 import { User } from '@prisma/client';
 
 import { PrismaService } from '../common';
-import { UserToRegisterDTO } from '../auth';
 
 @Injectable()
 export class UserService {
@@ -14,10 +13,13 @@ export class UserService {
     return await bcrypt.hash(password, salt);
   }
 
-  async create(userToRegister: UserToRegisterDTO) {
-    const hashedPassword = await this.hashpassword(userToRegister.password);
+  async create(userToRegister: Omit<User, 'id'>) {
+    if (userToRegister.password) {
+      const hashedPassword = await this.hashpassword(userToRegister.password);
+      Object.assign(userToRegister, { password: hashedPassword });
+    }
     return this.prisma.user.create({
-      data: { ...userToRegister, password: hashedPassword },
+      data: userToRegister,
     });
   }
 
@@ -27,7 +29,6 @@ export class UserService {
         id: true,
         email: true,
         role: true,
-        refresh: true,
       },
     });
   }
@@ -50,12 +51,6 @@ export class UserService {
     } catch (e) {
       console.log(e);
     }
-  }
-
-  async createFromGoogle(userFromGoogle: { email: string; googleId: string }) {
-    return this.prisma.user.create({
-      data: userFromGoogle,
-    });
   }
 
   async findByEmail(email: string) {
