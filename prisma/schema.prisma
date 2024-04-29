@@ -14,11 +14,25 @@ datasource db {
 model User {
   id       Int    @id @default(autoincrement())
   email    String @unique @db.VarChar(255)
-  password String @db.VarChar(255)
+  password String? @db.VarChar(255)
+  googleId String? @db.VarChar(255)
   role     Role   @default(USER)
-  refresh String @unique @default(uuid())
-  exercise Exercise[]
+  refresh String? @unique @default(uuid())
+  referalCode String? @unique
+  exercise  Exercise[]
+  clients   UserToCoach[] @relation("CoachClients")
+  coaches   UserToCoach[] @relation("UserCoaches")
 }
+
+model UserToCoach {
+  userId   Int
+  coachId  Int
+  client   User @relation("UserCoaches", fields: [userId], references: [id])
+  coach    User @relation("CoachClients", fields: [coachId], references: [id])
+
+  @@id([userId, coachId])
+}
+
 
 model MuscleGroup {
   id          Int        @id @default(autoincrement())
@@ -51,5 +65,6 @@ model ExerciseMuscleGroup {
 
 enum Role {
   USER
+  COACH
   ADMIN
 }

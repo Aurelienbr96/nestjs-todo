@@ -8,7 +8,7 @@ import { ExerciseModule } from './exercise';
 import { AppController } from './app.controller';
 
 @Module({
-  imports: [CommonModule, UserModule, AuthModule, MuscleGroupModule, ExerciseModule],
+  imports: [CommonModule, UserModule, AuthModule, MuscleGroupModule, ExerciseModule, UserModule],
   controllers: [AppController],
   providers: [],
 })

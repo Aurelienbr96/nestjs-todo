@@ -32,6 +32,8 @@ describe('POST auth/refresh-token', () => {
         expect(response.body).toEqual({
           id: user.id,
           email: user.email,
+          googleId: null,
+          referalCode: null,
           role: user.role,
         });
       });

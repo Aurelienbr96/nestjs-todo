@@ -1,19 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
-export class UserToRegisterDTO {
+export class UserToUpdateDTO {
   @ApiProperty()
-  @IsEmail()
-  email!: string;
-
-  @ApiProperty()
+  @IsOptional()
   @IsString()
-  @MinLength(8)
   password!: string;
 
   @ApiProperty()
-  @IsString()
   @IsOptional()
+  @IsString()
+  email!: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
   role!: Role;
 }

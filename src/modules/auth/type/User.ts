@@ -9,13 +9,19 @@ export class PublicUserModel {
   email!: string;
 
   @ApiProperty()
+  referalCode!: string;
+
+  @ApiProperty()
   role!: Role;
 
   @ApiProperty()
-  refresh!: string;
+  googleId!: string;
 }
 
 export class UserModel extends PublicUserModel {
   @ApiProperty()
   password!: string;
+
+  @ApiProperty()
+  refresh!: string;
 }

@@ -10,9 +10,12 @@ describe('GET /muscle-group', () => {
   const muscle = MuscleGroupFixtures.generate({ id: 1 });
   const user = UserFixtures.generate({ id: 1 });
 
+  let cookie: string;
+
   beforeAll(async () => {
     app = await AppFixtures.createApplication();
     await app.load({ muscleGroups: [muscle], users: [user] });
+    cookie = await app.generateAccessCookie(user.id);
   });
 
   afterAll(async () => {
@@ -22,6 +25,7 @@ describe('GET /muscle-group', () => {
   it('Should find all muscle group', () => {
     return request(app.getHttpServer())
       .get('/muscle-group')
+      .set('Cookie', cookie)
       .send()
       .expect(200)
       .then((response) => {

@@ -97,7 +97,7 @@ export class AppFixtures implements ITestApplication {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error(`Unable to find user with id ${userId}`);
 
-    const refreshToken = auth.signRefreshToken(user.id, user.refresh);
+    const refreshToken = auth.signRefreshToken(user.id, user.refresh as string);
     return `refresh-token=${refreshToken}`;
   }
 
@@ -117,6 +117,9 @@ export class AppFixtures implements ITestApplication {
       JWT_REFRESH_SECRET_KEY: 'testingrefreshsecretkey',
       JWT_SECRET_KEY: 'testingsecretkey',
       NODE_ENV: 'testing',
+      [Config.GoogleClientId]: 'testinggoogleclientid',
+      [Config.GoogleCodeSecret]: 'testinggooglecodesecret',
+      [Config.GoogleCallBackUrl]: 'testinggooglecallbackurl',
     };
 
     return {

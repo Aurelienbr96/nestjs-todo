@@ -1,8 +1,9 @@
-import { Body, Controller, Post, Get, Param, Put, NotFoundException, Delete, ParseIntPipe } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Put, NotFoundException, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
 import { UseAuthGuard } from '../auth/decorators/use-auth-guard.decorator';
+import { AuthGuard } from '../auth/guards';
 
 import { ManyMuscleToDeleteDTO, MuscleToCreateDTO, MuscleToUpdateDTO } from './dto';
 import { MuscleGroupService } from './muscle-group.service';
@@ -21,6 +22,7 @@ export class MuscleGroupController {
   }
 
   @Documentation.MuscleGroupOperationGetAll()
+  @UseGuards(AuthGuard)
   @Get()
   async findAll() {
     const muscleGroup = await this.muscleGroup.findAll();

@@ -40,17 +40,20 @@ describe('POST /register', () => {
         id: userToRegister.id,
         email: userToRegister.email,
         role: userToRegister.role,
-        refresh: stored.refresh,
+        googleId: null,
+        referalCode: null,
       });
     });
 
     it('should store user with hashed password', async () => {
       if (!stored) throw new Error('unable to find user');
       const { password, ...user } = stored;
-      const valid = await bcrypt.compare(userToRegister.password, password);
+      const valid = await bcrypt.compare(userToRegister.password as string, password as string);
       expect(valid).toBe(true);
       expect(user).toEqual({
         id: userToRegister.id,
+        googleId: null,
+        referalCode: null,
         email: userToRegister.email,
         role: userToRegister.role,
         refresh: stored.refresh,

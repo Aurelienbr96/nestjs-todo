@@ -13,7 +13,7 @@ export class UserFixtures {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error(`Unable to find user with id ${userId}`);
 
-    const refreshToken = auth.signRefreshToken(user.id, user.refresh);
+    const refreshToken = auth.signRefreshToken(user.id, user.refresh as string);
     return `refresh-token=${refreshToken}`;
   }
 
@@ -30,23 +30,27 @@ export class UserFixtures {
 
   static generate(partial: Partial<User> & Pick<User, 'id'>): User {
     const { id, ...user } = partial;
-    return {
+    const userToCreate = {
       id,
       email: `user-${id}@company.com`,
       password: `userpassword-${id}`,
       refresh: `refresh-${id}`,
-      role: 'USER',
+      role: 'USER' as const,
+      googleId: null,
+      referalCode: null,
       ...user,
     };
+
+    return userToCreate;
+  }
+
+  static async hash(password: string) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
   }
 
   static async hashPasswords(users: User[]) {
-    const hash = async (password: string) => {
-      const salt = await bcrypt.genSalt(10);
-      return bcrypt.hash(password, salt);
-    };
-
-    const passwords = await Promise.all(users.map((user) => hash(user.password)));
+    const passwords = await Promise.all(users.map((user) => this.hash(user.password as string)));
 
     return users.map((user, i) => ({ ...user, password: passwords[i] }));
   }
